@@ -1,0 +1,497 @@
+
+================================================================
+       SENTIMENT ANALYSIS PROJECT DOCUMENTATION
+================================================================
+
+PROJECT TITLE:
+Sentiment Analysis of Productivity Applications Using NLP
+and Traditional Machine Learning
+
+================================================================
+PHASE 1: DATASET EXPLORATION
+================================================================
+
+1. OBJECTIVE
+
+The objective of this phase was to understand the selected
+Google Play Store reviews dataset before performing data
+cleaning, NLP preprocessing and machine learning.
+
+We explored the dataset structure, columns, missing values,
+duplicate reviews, star ratings, application distribution,
+sentiment distribution and review lengths.
+
+The purpose was to understand the quality and characteristics
+of our data before making further implementation decisions.
+
+
+2. DATASET INFORMATION
+
+Dataset: Google Play Store App Reviews
+
+Dataset file:
+dataset/raw/google_play_reviews.csv
+
+Total records: 16,092
+Total columns: 12
+Total applications: 15
+Unique review texts: 10,663
+
+The dataset contains reviews from multiple productivity and
+personal-organisation applications, including task management,
+habit tracking, focus, planning and calendar applications.
+
+Important columns:
+
+- content: Actual review text.
+- score: Star rating given by the user.
+- appId: Application identifier.
+
+Other columns include reviewId, userName, userImage,
+thumbsUpCount, reviewCreatedVersion, at, replyContent,
+repliedAt and sortOrder.
+
+
+3. TECHNOLOGIES AND LIBRARIES USED
+
+Python 3:
+Used as the primary programming language.
+
+Pandas:
+Used to load, inspect, group and analyse the dataset.
+
+Matplotlib:
+Used to generate data visualisations.
+
+Pathlib:
+Used to handle project file paths.
+
+VS Code:
+Used as our code editor.
+
+GitHub Desktop:
+Used for version control and project updates.
+
+We used normal Python (.py) files instead of Jupyter
+Notebooks to maintain a consistent project structure.
+
+
+4. IMPLEMENTATION
+
+Created the following file:
+
+src/data_exploration.py
+
+The script performs the following operations:
+
+1. Loads the CSV dataset using Pandas.
+2. Displays the total number of records and columns.
+3. Inspects column names and data types.
+4. Displays the first five reviews.
+5. Checks missing values.
+6. Identifies completely duplicated rows.
+7. Identifies repeated review texts.
+8. Analyses star rating distribution.
+9. Analyses application-wise review distribution.
+10. Creates sentiment labels from star ratings.
+11. Analyses application-wise sentiment distribution.
+12. Investigates reviews with conflicting ratings.
+13. Analyses review lengths.
+14. Generates exploratory data visualisations.
+
+
+5. MISSING VALUE ANALYSIS
+
+Observed results:
+
+Column                  Missing Values
+
+reviewCreatedVersion       2,350
+replyContent               8,203
+repliedAt                  8,203
+All other columns              0
+
+Important observation:
+
+The main columns required for our project, content, score
+and appId, contain no missing values.
+
+Decision:
+
+We will not remove reviews simply because optional metadata
+such as developer replies or application version information
+is missing.
+
+Reason:
+
+Our main objective is to analyse review text. Missing developer
+replies or version information does not make the review text
+unusable for sentiment classification.
+
+
+6. DUPLICATE ANALYSIS
+
+Observed results:
+
+Total records:                 16,092
+Completely duplicated rows:         0
+Repeated review text occurrences: 5,429
+Unique review texts:           10,663
+
+Further investigation:
+
+We grouped reviews by their exact text and checked whether
+the same text had different star ratings.
+
+Result:
+
+64 unique review texts were found with conflicting ratings.
+
+Examples:
+
+Review: Amazing app
+Ratings: 3, 4, 5
+
+Review: Awesome
+Ratings: 4, 5
+
+Review: Best
+Ratings: 1, 3
+
+Review: Cool
+Ratings: 4, 5
+
+Why this matters:
+
+Our sentiment labels are generated from star ratings.
+Therefore, identical review texts with different ratings
+can receive different sentiment labels.
+
+Decision:
+
+We will not blindly remove all repeated reviews.
+
+We need to investigate conflicting review groups before
+finalising duplicate handling.
+
+We must also prevent identical review texts from appearing
+in both training and testing data, wherever practical,
+to avoid data leakage.
+
+
+7. STAR RATING DISTRIBUTION
+
+Observed results:
+
+Rating       Number of Reviews
+
+1 Star             2,642
+2 Stars            2,546
+3 Stars            5,150
+4 Stars            2,834
+5 Stars            2,920
+
+Total: 16,092
+
+
+8. SENTIMENT LABEL CREATION
+
+We proposed converting numerical star ratings into
+three sentiment categories.
+
+Mapping:
+
+1-2 Stars = Negative
+3 Stars   = Neutral
+4-5 Stars = Positive
+
+Derived sentiment distribution:
+
+Sentiment       Reviews       Percentage
+
+Negative         5,188          32.24%
+Neutral          5,150          32.00%
+Positive         5,754          35.76%
+
+Total           16,092         100%
+
+Observation:
+
+The three sentiment classes are reasonably balanced.
+
+This is useful because our classification model will not
+face a severe overall class imbalance.
+
+Important limitation:
+
+These sentiment labels are derived from star ratings,
+not independently annotated by human reviewers.
+
+A three-star review may contain both positive and negative
+opinions. Therefore, our model learns to predict
+rating-derived sentiment labels.
+
+We must clearly mention this limitation in our final report.
+
+
+9. APPLICATION-WISE DISTRIBUTION
+
+The dataset contains reviews from 15 applications.
+
+Twelve applications contain exactly 1,200 reviews each.
+
+The remaining applications contain:
+
+com.levor.liferpgtasks  = 810 reviews
+com.habitnow            = 620 reviews
+com.artfulagenda.app    = 262 reviews
+
+Application-wise sentiment distribution:
+
+For 12 applications:
+
+Negative = 400
+Neutral  = 400
+Positive = 400
+
+Other applications:
+
+Application: com.artfulagenda.app
+Negative: 68
+Neutral: 40
+Positive: 154
+
+Application: com.habitnow
+Negative: 106
+Neutral: 114
+Positive: 400
+
+Application: com.levor.liferpgtasks
+Negative: 214
+Neutral: 196
+Positive: 400
+
+Observation:
+
+Most applications have an exactly balanced sentiment
+distribution, while three applications have different
+distributions.
+
+This suggests that the dataset may have been sampled
+to balance sentiment classes for many applications.
+
+We should consider this when interpreting our model's
+performance and generalisation results.
+
+
+10. REVIEW LENGTH ANALYSIS
+
+We calculated review length using the number of words
+in each review.
+
+Observed results:
+
+Total reviews:       16,092
+Average length:      34.75 words
+Standard deviation:  29.16 words
+Minimum length:       1 word
+25th percentile:    12 words
+Median length:      26 words
+75th percentile:    51 words
+Maximum length:    391 words
+
+Observation:
+
+Reviews have different lengths.
+
+Some reviews are very short, while others contain detailed
+feedback about application features.
+
+Decision:
+
+We should not remove short reviews simply because they
+contain fewer words. Short reviews may still contain
+important sentiment expressions.
+
+
+11. DATA VISUALISATIONS
+
+We generated three visualisations using Matplotlib.
+
+Files generated:
+
+results/plots/rating_distribution.png
+
+results/plots/sentiment_distribution.png
+
+results/plots/application_distribution.png
+
+Purpose:
+
+1. Rating Distribution:
+   Shows the number of reviews for each star rating.
+
+2. Sentiment Distribution:
+   Shows the distribution of Negative, Neutral and Positive
+   reviews after applying our rating-to-sentiment mapping.
+
+3. Application Distribution:
+   Shows the number of reviews contributed by each application.
+
+
+12. RESEARCH PAPER CONNECTION
+
+The dataset exploration and sentiment-label decisions are
+supported by ideas discussed in the following papers.
+
+PAPER 1:
+
+Pang, B. and Lee, L. (2005).
+
+"Seeing Stars: Exploiting Class Relationships for Sentiment
+Categorization with Respect to Rating Scales."
+
+Research idea used:
+
+The paper studies sentiment categorisation using rating
+scales and highlights the relationship between ratings
+and sentiment categories.
+
+Our implementation:
+
+We use star ratings to derive three sentiment classes:
+Negative, Neutral and Positive.
+
+We are not implementing the specialised algorithm
+proposed in the paper.
+
+PAPER 2:
+
+Pang, B. and Lee, L. (2008).
+
+"Opinion Mining and Sentiment Analysis."
+
+Research idea used:
+
+The paper provides an overview of sentiment analysis,
+text classification, feature representation and challenges
+in opinion mining.
+
+Our implementation:
+
+We use its general sentiment-analysis foundations to guide
+our dataset understanding and subsequent NLP methodology.
+
+
+13. IMPORTANT DECISIONS MADE
+
+1. We selected Google Play Store reviews from 15
+   productivity and personal-organisation applications.
+
+2. We decided to perform three-class sentiment
+   classification.
+
+3. We will use the content column as our main text input.
+
+4. We will use the score column to derive sentiment labels.
+
+5. We will use appId for application-wise analysis.
+
+6. We will retain the original dataset unchanged.
+
+7. We will investigate repeated reviews instead of
+   automatically deleting them.
+
+8. We will prevent duplicate-text leakage during evaluation.
+
+9. We will evaluate the model across different applications
+   to investigate generalisation.
+
+10. We will clearly acknowledge that sentiment labels
+    are derived from star ratings.
+
+
+14. FILES CREATED AND MODIFIED
+
+src/data_exploration.py
+
+Purpose:
+Contains the complete dataset exploration implementation.
+
+dataset/raw/google_play_reviews.csv
+
+Purpose:
+Stores the original dataset.
+
+results/plots/
+
+Contains:
+- rating_distribution.png
+- sentiment_distribution.png
+- application_distribution.png
+
+
+15. WHAT WE LEARNED
+
+Through this phase, we understood:
+
+1. How to load and inspect a CSV dataset using Pandas.
+
+2. How to identify missing values and duplicate records.
+
+3. How to analyse categorical rating distributions.
+
+4. How to generate sentiment labels from numerical ratings.
+
+5. How to analyse application-wise sentiment distribution.
+
+6. How repeated review texts can create conflicting labels.
+
+7. Why data leakage must be prevented during model evaluation.
+
+8. Why understanding the dataset is important before
+   applying NLP and machine learning algorithms.
+
+
+16. PENDING INVESTIGATIONS
+
+Before finalising data cleaning, we need to:
+
+1. Inspect all 64 conflicting review-text groups.
+
+2. Investigate repeated reviews across different applications.
+
+3. Decide how conflicting duplicate reviews should be handled.
+
+4. Finalise a duplicate-aware train-test splitting strategy.
+
+5. Decide which columns are necessary for the final dataset.
+
+
+17. PHASE COMPLETION STATUS
+
+Phase: 1 - Dataset Exploration
+
+Status: Exploration completed.
+
+Dataset loaded successfully.
+Dataset statistics analysed.
+Missing values investigated.
+Duplicate texts investigated.
+Sentiment distribution calculated.
+Application-wise sentiment distribution analysed.
+Review lengths analysed.
+Visualisations generated.
+
+The conflicting duplicate review investigation remains
+pending and will be resolved before finalising the
+data-cleaning decisions.
+
+Next Phase:
+
+PHASE 2 - DATA CLEANING
+
+
+================================================================
+                  END OF PHASE 1 DOCUMENTATION
+================================================================
