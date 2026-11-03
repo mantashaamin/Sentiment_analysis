@@ -495,3 +495,311 @@ PHASE 2 - DATA CLEANING
 ================================================================
                   END OF PHASE 1 DOCUMENTATION
 ================================================================
+
+
+
+
+================================================================
+PHASE 2: DATA CLEANING
+================================================================
+
+1. OBJECTIVE
+
+The objective of this phase was to clean the original dataset,
+remove ambiguous records, handle duplicate combinations,
+retain relevant columns and prepare a structured dataset
+for NLP preprocessing and machine learning.
+
+The original dataset was preserved without modification.
+
+
+2. TOOLS AND LIBRARIES USED
+
+Python 3:
+Used for implementing the data-cleaning pipeline.
+
+Pandas:
+Used for handling missing values, grouping reviews,
+identifying conflicting labels, removing duplicates,
+creating sentiment labels and saving the cleaned dataset.
+
+Pathlib:
+Used for managing project directories and file paths.
+
+
+3. IMPLEMENTATION
+
+Created and implemented:
+
+src/data_cleaning.py
+
+The script performs the following operations:
+
+1. Loads the original CSV dataset.
+2. Selects the required columns:
+   - content
+   - score
+   - appId
+3. Handles missing and empty review text.
+4. Identifies review texts having conflicting ratings.
+5. Saves conflicting records separately.
+6. Excludes conflicting review groups.
+7. Removes repeated combinations of content, score and appId.
+8. Creates three sentiment labels from star ratings.
+9. Saves the cleaned dataset.
+10. Verifies the final dataset.
+
+
+4. CONFLICTING REVIEW HANDLING
+
+From Phase 1, we identified:
+
+Conflicting review groups: 64
+Total records in those groups: 429
+
+Examples included:
+
+- Not good
+- Not free
+- Amazing app
+- Awesome
+- Good
+- Nice
+
+The same review text appeared with different star ratings,
+which could produce contradictory sentiment labels.
+
+Decision:
+
+All records belonging to the 64 conflicting review groups
+were excluded from the primary cleaned dataset.
+
+The original conflicting records were saved separately
+for reference and further analysis.
+
+Reason:
+
+Our model uses review text as input. Identical text with
+different sentiment labels can introduce ambiguity during
+supervised learning.
+
+Limitation:
+
+Some repeated short reviews may represent genuine user
+opinions. Excluding these records is a methodological
+choice to reduce label ambiguity, not proof that those
+reviews were incorrect.
+
+
+5. DUPLICATE REMOVAL
+
+After excluding conflicting review groups:
+
+Records remaining: 15,663
+
+Repeated combinations removed: 5,024
+
+The following columns were used to identify repeated
+combinations:
+
+- content
+- score
+- appId
+
+Pandas drop_duplicates() was used to retain one occurrence
+of each identical combination.
+
+Important:
+
+This operation removes repeated combinations, not
+necessarily accidental duplicate submissions. Different
+users may independently submit identical short reviews.
+
+We will also account for identical review texts when
+designing our training and testing strategy.
+
+
+6. MISSING AND EMPTY VALUE HANDLING
+
+The script checked the required columns:
+
+- content
+- score
+- appId
+
+Missing or empty records removed: 0
+
+All three required columns were complete in the
+original dataset.
+
+Optional metadata columns were excluded because they
+were not required for the initial sentiment classifier.
+
+
+7. SENTIMENT LABEL CREATION
+
+We converted star ratings into three sentiment classes.
+
+Mapping:
+
+1-2 Stars = Negative
+3 Stars   = Neutral
+4-5 Stars = Positive
+
+The sentiment column was generated using a custom
+Python function and Pandas apply().
+
+This mapping was retained from Phase 1.
+
+The labels remain rating-derived labels rather than
+independent human annotations.
+
+
+8. FINAL CLEANED DATASET
+
+Original records:                 16,092
+Conflicting records excluded:        429
+Repeated combinations removed:     5,024
+
+Final records:                    10,639
+
+Final columns: 4
+
+1. content
+2. score
+3. appId
+4. sentiment
+
+Final dataset shape:
+
+(10639, 4)
+
+
+9. FINAL SENTIMENT DISTRIBUTION
+
+Sentiment       Reviews       Percentage
+
+Positive         4,228          39.74%
+Negative         3,387          31.84%
+Neutral          3,024          28.43%
+
+Total           10,639         100%
+
+Observation:
+
+The cleaned dataset has a moderate class imbalance,
+with Positive reviews forming the largest class.
+
+We will preserve this natural distribution rather
+than artificially balance the dataset at this stage.
+
+During model evaluation, we will use stratified splitting
+and class-wise evaluation metrics, including Macro F1.
+
+
+10. DATASET VERIFICATION
+
+The saved dataset was loaded again to verify the results.
+
+Verified checks:
+
+Dataset shape: (10639, 4)
+
+Missing values:
+content:   0
+score:     0
+appId:     0
+sentiment: 0
+
+Duplicate combinations: 0
+
+Sentiment distribution matched the cleaning summary.
+
+All verification checks passed.
+
+
+11. OUTPUT FILES
+
+src/data_cleaning.py
+
+Contains the complete cleaning implementation.
+
+dataset/raw/google_play_reviews.csv
+
+Original, unchanged dataset.
+
+dataset/processed/cleaned_reviews.csv
+
+Final cleaned dataset containing 10,639 records.
+
+results/conflicting_review_records.csv
+
+Contains the records belonging to conflicting
+review-text groups that were excluded from the
+primary cleaned dataset.
+
+
+12. IMPORTANT DECISIONS
+
+1. The original dataset was preserved.
+
+2. Only relevant columns were retained.
+
+3. Missing optional metadata was not used as a reason
+   to discard otherwise usable reviews.
+
+4. Conflicting review groups were excluded to reduce
+   contradictory training labels.
+
+5. Repeated content-score-appId combinations were removed.
+
+6. Three sentiment classes were created using star ratings.
+
+7. The original class distribution was preserved.
+
+8. The cleaned dataset was saved separately.
+
+9. Duplicate-aware evaluation will be considered to
+   prevent data leakage.
+
+
+13. LIMITATIONS AND CONSIDERATIONS
+
+- Removing conflicting groups reduces the available data.
+- Repeated short reviews may be genuine submissions.
+- Rating-derived sentiment labels may not perfectly
+  represent the actual language of a review.
+- The cleaned dataset has some class imbalance.
+- Identical review texts across applications must be
+  considered during evaluation.
+
+
+14. WHAT WE LEARNED
+
+1. Selecting relevant columns using Pandas.
+2. Handling missing and empty text.
+3. Grouping records to identify conflicting labels.
+4. Removing repeated combinations using drop_duplicates().
+5. Creating categorical labels from numerical ratings.
+6. Saving processed datasets separately.
+7. Verifying dataset shape, missing values and duplicates.
+8. Understanding the importance of data quality in
+   supervised machine learning.
+
+
+15. PHASE COMPLETION STATUS
+
+Phase: 2 - Data Cleaning
+
+Status: COMPLETED AND VERIFIED
+
+The cleaned dataset is ready for the next stage.
+
+Next Phase:
+
+PHASE 3 - NLP TEXT PREPROCESSING
+
+
+================================================================
+              END OF PHASE 2 DOCUMENTATION
+================================================================
