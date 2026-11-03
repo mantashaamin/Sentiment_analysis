@@ -803,3 +803,271 @@ PHASE 3 - NLP TEXT PREPROCESSING
 ================================================================
               END OF PHASE 2 DOCUMENTATION
 ================================================================
+
+# PHASE 3: NLP TEXT PREPROCESSING
+
+## 1. Objective
+
+The objective of this phase is to prepare the cleaned Google Play Store reviews for machine learning by removing unnecessary textual elements while preserving important sentiment-related information.
+
+Raw user reviews contain uppercase letters, punctuation, URLs, HTML tags, contractions, common words and irregular whitespace. These elements need to be handled before converting text into numerical features.
+
+The preprocessing process is applied to the review text stored in the `content` column.
+
+## 2. Input Dataset
+
+**Input file:**
+
+`dataset/processed/cleaned_reviews.csv`
+
+**Initial number of records:** 10,639
+
+The dataset contains the following columns:
+
+- `content`: Original user review.
+- `score`: Star rating given by the user.
+- `appId`: Unique application identifier.
+- `sentiment`: Sentiment label derived from the star rating.
+
+## 3. Preprocessing Techniques Applied
+
+The following NLP preprocessing operations were implemented.
+
+### A. Lowercasing
+
+All review text was converted into lowercase to maintain consistency and avoid treating uppercase and lowercase versions of the same word as different terms.
+
+Example:
+
+Original: `GREAT Application`
+
+Processed: `great application`
+
+### B. Contraction Expansion
+
+Common English contractions were expanded before punctuation removal to preserve their original meaning.
+
+Examples:
+
+- don't → do not
+- doesn't → does not
+- isn't → is not
+- can't → cannot
+- won't → will not
+- shouldn't → should not
+
+This is particularly important because contractions frequently express negation.
+
+### C. URL Removal
+
+Website links and URLs were removed because they generally do not contribute directly to the sentiment expressed in a review.
+
+Example:
+
+Original: `Visit www.example.com for details`
+
+Processed: `visit for details`
+
+### D. HTML Tag Removal
+
+HTML tags were removed to retain only readable textual content.
+
+Example:
+
+Original: `<b>Good application</b>`
+
+Processed: `good application`
+
+### E. Punctuation and Special Character Removal
+
+Punctuation marks, numbers and unnecessary special characters were removed using regular expressions.
+
+Only English alphabetic characters and whitespace were retained.
+
+Example:
+
+Original: `Amazing app!!! 10/10`
+
+Processed: `amazing app`
+
+### F. Whitespace Normalization
+
+Multiple spaces, tabs and unnecessary whitespace were replaced with a single space.
+
+This ensures consistent formatting throughout the dataset.
+
+### G. Stopword Removal
+
+Common English stopwords were removed using the English stopword corpus provided by the NLTK library.
+
+Stopwords are frequently occurring words that may contribute less useful information to basic text classification.
+
+Examples include:
+
+- the
+- is
+- are
+- an
+- a
+
+However, not every common word was removed. Important sentiment-related words were preserved.
+
+### H. Preservation of Important Sentiment Words
+
+Certain words were deliberately excluded from stopword removal because they can change or strengthen the meaning of a review.
+
+**1. Negation words**
+
+Examples: no, not, never, neither, none.
+
+**2. Contrast words**
+
+Examples: but, however, although, though, yet.
+
+**3. Intensity and emphasis words**
+
+Examples: very, too, really, extremely, quite, highly.
+
+**4. Other meaningful words**
+
+Examples: only, just, barely, hardly, still, without.
+
+Preserving these words helps retain important sentiment information.
+
+For example:
+
+- `not good` should not become `good`.
+- `good but expensive` should retain the contrast expressed by `but`.
+- `very useful` should retain the intensity expressed by `very`.
+
+### I. Removal of Empty Processed Reviews
+
+Some reviews contained only punctuation, numbers, special characters or stopwords.
+
+After preprocessing, these reviews became empty and were removed because they did not contain useful textual information for model training.
+
+## 4. Implementation Details
+
+The preprocessing logic was implemented in:
+
+`src/preprocessing.py`
+
+**Libraries used:**
+
+| Library | Purpose |
+|---|---|
+| Pandas | Dataset loading, processing and saving |
+| NLTK | English stopword corpus |
+| re (Regular Expressions) | URL, HTML, punctuation and whitespace removal |
+| pathlib | Managing project file paths |
+
+A function named `clean_text()` was created to perform the preprocessing operations on individual reviews.
+
+The function was applied to the `content` column using Pandas.
+
+A new column named `cleaned_content` was created to store the processed reviews.
+
+The original `content` column was retained so that the original and processed versions could be compared during later experiments.
+
+## 5. Output Dataset
+
+**Output file:**
+
+`dataset/processed/preprocessed_reviews.csv`
+
+The final dataset contains five columns:
+
+| Column | Description |
+|---|---|
+| `content` | Original user review |
+| `score` | Original star rating |
+| `appId` | Application identifier |
+| `sentiment` | Derived sentiment category |
+| `cleaned_content` | Preprocessed review text |
+
+## 6. Final Preprocessing Results
+
+The preprocessing script was executed successfully and the output was verified.
+
+| Measurement | Result |
+|---|---:|
+| Initial records | 10,639 |
+| Empty reviews removed | 64 |
+| Final records | 10,575 |
+| Final columns | 5 |
+| Missing values | 0 |
+
+**Final dataset shape:** `(10575, 5)`
+
+### Final Sentiment Distribution
+
+| Sentiment | Records | Percentage |
+|---|---:|---:|
+| Positive | 4,202 | 39.74% |
+| Negative | 3,372 | 31.89% |
+| Neutral | 3,001 | 28.38% |
+| **Total** | **10,575** | **100%** |
+
+Note: Percentages may total 100.01% due to rounding.
+
+## 7. Before-and-After Preprocessing Example
+
+**Original Review:**
+
+"I love this app, but I do have one major gripe. I want an option to buy premium once and not as a monthly or yearly subscription."
+
+**Processed Review:**
+
+"love app but one major gripe want option buy premium not monthly yearly subscription"
+
+The processed review retains important sentiment-related words such as `but` and `not`, while removing unnecessary words and punctuation.
+
+Another example:
+
+**Original Review:**
+
+"The app is beautiful but the interface is awful."
+
+**Processed Review:**
+
+"app beautiful but interface awful"
+
+The processed version preserves both positive and negative expressions, along with the contrast between them.
+
+## 8. Important Methodological Decisions
+
+The following decisions were made during preprocessing:
+
+1. Negation words were preserved because removing them could reverse the meaning of a review.
+2. Contrast words were preserved because they help identify changes in opinion within a sentence.
+3. Intensity words were preserved because they indicate the strength of an opinion.
+4. Stemming and lemmatization were not applied in this phase to avoid unnecessary modification of the original vocabulary.
+5. The original review text was retained alongside processed text for future experimentation.
+6. Reviews that became empty after preprocessing were removed.
+7. The final processed dataset was verified for missing values.
+
+## 9. Limitations
+
+- Sentiment labels are derived from star ratings and may not always match the actual emotion expressed in the review.
+- Stopword removal may discard some contextual information.
+- Sarcasm, spelling mistakes and informal expressions may still affect sentiment classification.
+- The preprocessing approach is primarily designed for English-language reviews.
+- Some meaningful contextual information may be lost when punctuation and numbers are removed.
+
+## 10. Phase Conclusion
+
+The NLP text preprocessing phase successfully transformed the cleaned Google Play Store reviews into a more consistent textual format.
+
+The final dataset contains the original review text, rating, application identifier, sentiment label and preprocessed review text.
+
+The resulting dataset is ready for numerical feature extraction.
+
+**Output generated:** `dataset/processed/preprocessed_reviews.csv`
+
+**Implementation:** `src/preprocessing.py`
+
+**Phase Status: COMPLETED**
+
+---
+
+# END OF PHASE 3
