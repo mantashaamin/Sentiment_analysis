@@ -1,0 +1,20 @@
+# macOS
+.DS_Store
+.env
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Dataset files
+dataset/raw/*.csv
+dataset/processed/*.csv
+dataset/processed/features/
+
+# Generated models
+models/*.pkl
+models/*.model
+
+# Results generated from review data
+results/*reviews*.csv
