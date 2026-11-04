@@ -1071,3 +1071,294 @@ The resulting dataset is ready for numerical feature extraction.
 ---
 
 # END OF PHASE 3
+
+============================================================
+PHASE 4: FEATURE EXTRACTION
+============================================================
+
+1. OBJECTIVE
+
+The objective of this phase is to convert preprocessed text
+reviews into numerical representations that machine learning
+algorithms can understand.
+
+Three feature extraction approaches were implemented:
+
+1. Bag-of-Words (BoW)
+2. TF-IDF
+3. Word2Vec
+
+Word2Vec was implemented using two approaches:
+- Continuous Bag of Words (CBOW)
+- Skip-gram
+
+
+2. DATASET PREPARATION
+
+Input dataset:
+dataset/processed/preprocessed_reviews.csv
+
+Total records: 10,575
+
+Input features:
+- cleaned_content: Preprocessed review text
+- sentiment: Target sentiment label
+- content: Original review text
+- appId: Application identifier
+- score: Original star rating
+
+The cleaned_content column was used for feature extraction.
+The sentiment column was used as the target variable.
+
+A group-aware 80:20 train-test split was created using
+GroupShuffleSplit from Scikit-learn.
+
+Original review texts were normalized using lowercase and
+whitespace trimming to identify identical review groups.
+
+Training records: 8,461
+Testing records: 2,114
+
+Training sentiment distribution:
+- Positive: 3,371
+- Negative: 2,700
+- Neutral: 2,390
+
+Testing sentiment distribution:
+- Positive: 831
+- Negative: 672
+- Neutral: 611
+
+Overlapping original review groups: 0
+
+This approach prevents identical original review texts from
+appearing in both training and testing datasets.
+
+
+3. BAG-OF-WORDS (BoW)
+
+Library:
+Scikit-learn CountVectorizer
+
+Configuration:
+- max_features = 5000
+- ngram_range = (1, 2)
+- min_df = 2
+
+Description:
+
+Bag-of-Words converts text into numerical vectors based on
+the frequency of words and word combinations.
+
+Unigrams represent individual words.
+Bigrams represent combinations of two consecutive words.
+
+The vocabulary was learned only from training data.
+Testing data was transformed using the same vocabulary.
+
+Results:
+- Vocabulary size: 5,000
+- Training matrix: 8,461 x 5,000
+- Testing matrix: 2,114 x 5,000
+
+Saved files:
+- X_train_bow.npz
+- X_test_bow.npz
+- bow_vectorizer.pkl
+
+
+4. TF-IDF
+
+Library:
+Scikit-learn TfidfVectorizer
+
+Configuration:
+- max_features = 5000
+- ngram_range = (1, 2)
+- min_df = 2
+
+Description:
+
+TF-IDF stands for Term Frequency-Inverse Document Frequency.
+
+It assigns weights to words based on their frequency within
+a document and how common they are across the training
+document collection.
+
+Common words generally receive lower IDF weights, while
+more distinctive words can receive higher weights.
+
+The vocabulary and IDF values were learned only from
+training data. Testing data was transformed using the
+same fitted vectorizer.
+
+Results:
+- Vocabulary size: 5,000
+- Training matrix: 8,461 x 5,000
+- Testing matrix: 2,114 x 5,000
+
+Saved files:
+- X_train_tfidf.npz
+- X_test_tfidf.npz
+- tfidf_vectorizer.pkl
+
+
+5. WORD2VEC
+
+Library:
+Gensim Word2Vec
+
+Word2Vec learns dense vector representations of words
+based on their surrounding context.
+
+Configuration:
+- vector_size = 100
+- window = 5
+- min_count = 2
+- workers = 1
+- seed = 42
+- epochs = 20
+
+Word2Vec was trained using training reviews only.
+
+Two Word2Vec approaches were implemented.
+
+
+5.1 CONTINUOUS BAG OF WORDS (CBOW)
+
+Configuration:
+- sg = 0
+
+CBOW predicts a target word using its surrounding context
+words.
+
+Vocabulary size: 4,953
+
+Training matrix: 8,461 x 100
+Testing matrix: 2,114 x 100
+
+Saved files:
+- X_train_cbow.npy
+- X_test_cbow.npy
+- word2vec_cbow.model
+
+
+5.2 SKIP-GRAM
+
+Configuration:
+- sg = 1
+
+Skip-gram predicts surrounding context words using a
+target word.
+
+Vocabulary size: 4,953
+
+Training matrix: 8,461 x 100
+Testing matrix: 2,114 x 100
+
+Saved files:
+- X_train_skipgram.npy
+- X_test_skipgram.npy
+- word2vec_skipgram.model
+
+
+6. REVIEW-LEVEL WORD2VEC REPRESENTATION
+
+Word2Vec produces a vector for each individual word.
+However, machine learning classifiers require one
+fixed-size vector for each review.
+
+Therefore, the average of all available word vectors
+in a review was calculated.
+
+Each review is represented by a 100-dimensional vector.
+
+If a review contains no words present in the trained
+Word2Vec vocabulary, a zero vector is returned.
+
+This method is known as average word embedding.
+
+
+7. FEATURE EXTRACTION RESULTS
+
+Feature representation     Training       Testing
+--------------------------------------------------
+Bag-of-Words               8461 x 5000     2114 x 5000
+TF-IDF                     8461 x 5000     2114 x 5000
+Word2Vec CBOW              8461 x 100      2114 x 100
+Word2Vec Skip-gram         8461 x 100      2114 x 100
+
+
+8. SAVED PROJECT FILES
+
+dataset/processed/features/
+- X_train_bow.npz
+- X_test_bow.npz
+- X_train_tfidf.npz
+- X_test_tfidf.npz
+- X_train_cbow.npy
+- X_test_cbow.npy
+- X_train_skipgram.npy
+- X_test_skipgram.npy
+- y_train.csv
+- y_test.csv
+
+models/
+- bow_vectorizer.pkl
+- tfidf_vectorizer.pkl
+- word2vec_cbow.model
+- word2vec_skipgram.model
+
+
+9. VERIFICATION
+
+All feature extraction techniques executed successfully.
+
+Verified:
+- Training and testing matrices were generated.
+- BoW and TF-IDF produced 5,000 features.
+- CBOW and Skip-gram produced 100-dimensional review
+  representations.
+- Both Word2Vec models were saved and reloaded.
+- Both Word2Vec models contained 4,953 vocabulary words.
+- No identical original review groups overlapped between
+  training and testing datasets.
+
+The saved feature matrices and models were successfully
+loaded during verification.
+
+
+10. LIMITATIONS
+
+- BoW considers word frequency but does not understand
+  semantic meaning.
+- TF-IDF assigns importance weights but does not understand
+  sentence context.
+- Word2Vec learns word relationships but does not directly
+  represent complete sentence meaning.
+- Averaging Word2Vec vectors loses word order and some
+  contextual information.
+- The group-aware split prevents identical review text
+  leakage, but it does not guarantee generalization to
+  completely unseen applications.
+
+These limitations will be considered during model
+evaluation and result interpretation.
+
+
+11. CONCLUSION
+
+In this phase, preprocessed Google Play reviews were
+converted into numerical feature representations using
+Bag-of-Words, TF-IDF, CBOW and Skip-gram.
+
+All feature matrices and trained vectorizers or embedding
+models were saved successfully.
+
+The generated features are ready to be used in the next
+phase for training and evaluating machine learning
+classification algorithms.
+
+============================================================
+END OF PHASE 4
+============================================================
